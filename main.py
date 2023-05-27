@@ -20,13 +20,13 @@ def mandelbrot(Z, max_iter):
 
 def zoomIn(event):
     global zoom, anchor
-    zoom += .1
+    zoom += 1
     anchor = canvas.canvasx(event.x), canvas.canvasy(event.y)
 
 
 def zoomOut(event):
     global zoom, anchor
-    zoom -= .1
+    zoom -= .2
     zoom = max(.1, zoom)
     anchor = canvas.canvasx(event.x), canvas.canvasy(event.y)
 
@@ -34,14 +34,23 @@ def zoomOut(event):
 def reset(event):
     global xmax, xmin, ymax, ymin, zoom, anchor
     zoom = 1
-    anchor = WIDTH//2, HEIGHT//2
+    last_state['anchor'] = WIDTH//2, HEIGHT//2
     xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
+    root.after(1, render_graphics())
 
 
 def update_state(func, max_iter: int):
     global WIDTH, HEIGHT, canvas, zoom, xmax, xmin, ymax, ymin
 
     anchor = last_state['anchor']
+    x_offset = (xmax-xmin) * ((anchor[0] - WIDTH/2)/WIDTH)
+    y_offset = (ymax-ymin) * ((anchor[1] - HEIGHT/2)/HEIGHT)
+
+    xmax += x_offset
+    xmin += x_offset
+    ymax += y_offset
+    ymin += y_offset
+
     if zoom != 1:
         centerx = (xmax+xmin)/2
         centery = (ymax+ymin)/2
@@ -52,15 +61,8 @@ def update_state(func, max_iter: int):
         xmin = centerx - (xmax-xmin)/2/zoom
 
     zoom = 1
+
     x_edge = (xmax-xmin)*((WIDTH/HEIGHT)-1)/2
-    x_offset = (xmax-xmin) * ((anchor[0] - WIDTH/2)/WIDTH)
-    y_offset = (ymax-ymin) * ((anchor[1] - HEIGHT/2)/HEIGHT)
-
-    xmax += x_offset
-    xmin += x_offset
-    ymax += y_offset
-    ymin += y_offset
-
     x = np.linspace(xmin-x_edge,
                     xmax+x_edge, WIDTH)
     y = np.linspace(ymin, ymax, HEIGHT)
@@ -77,13 +79,18 @@ def update_state(func, max_iter: int):
 
 
 def render_graphics():
-    global last_state, zoom
+    global last_state, zoom, threshold
     gamestates = update_state(mandelbrot, 1000)
 
     for i, gamestate in enumerate(gamestates):
-        if (i+1) % 5 == 0:
+        if (i+1) % 2 == 0:
             gamestate *= 255.0/gamestate.max()
             gamestate = gamestate.astype(np.uint8)
+
+            if threshold:
+                gamestate[gamestate > threshold] = 255
+                gamestate[gamestate <= threshold] = 0
+
             if i >= last_state['index'] or last_state['state'] is None:
 
                 tk_image = ImageTk.PhotoImage(Image.fromarray(gamestate))
@@ -96,7 +103,7 @@ def render_graphics():
             canvas.update()
             root.update()
         if zoom != 1:
-            last_state['index'] = 50
+            last_state['index'] = 20
 
             rot_mat = cv2.getRotationMatrix2D((anchor[0], anchor[1]), 0, zoom)
             gamestate = cv2.warpAffine(
@@ -111,6 +118,9 @@ def render_graphics():
             canvas.update()
             root.update()
 
+            break
+        if last_state['reset']:
+            last_state['reset'] = False
             break
 
     root.after(16, render_graphics)
@@ -131,10 +141,12 @@ if __name__ == "__main__":
     root.bind("<Escape>", lambda e: root.destroy())
     root.bind("<Button-4>", zoomIn)
     root.bind("<Button-5>", zoomOut)
-    root.bind("<Button-3>", reset)
+    root.bind("<Key-r>", reset)
 
-    last_state = {'state': None, 'arr': None, 'index': 0, 'anchor': anchor}
+    last_state = {'state': None, 'arr': None,
+                  'index': 0, 'anchor': anchor, 'reset': False}
     xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
+    threshold = 254
     render_graphics()
 
     root.mainloop()
