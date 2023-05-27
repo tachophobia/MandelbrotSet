@@ -17,23 +17,46 @@ def mandelbrot(Z, max_iter):
         yield iters
 
 
-def start_pan(event):
-    canvas.scan_mark(event.x, event.y)
+def zoomIn(event):
+    global zoom, anchor
+    zoom += .1
+    anchor = canvas.canvasx(event.x), canvas.canvasy(event.y)
 
 
-def move_pan(event):
-    canvas.scan_dragto(event.x, event.y, gain=1)
+def zoomOut(event):
+    global zoom, anchor
+    zoom -= .1
+    zoom = max(.1, zoom)
+    anchor = canvas.canvasx(event.x), canvas.canvasy(event.y)
 
 
-def zoom(event):
-    print('cat')
-    scale_factor = 1.1 if event.delta > 0 else 0.9
-    canvas.scale("all", event.x, event.y, scale_factor, scale_factor)
+def reset(event):
+    global xmax, xmin, ymax, ymin, zoom
+    zoom = 1
+    xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
 
 
-def update_state(func, max_iter: int, xmin=-2, xmax=1, ymin=-1.3, ymax=1.3):
-    global WIDTH, HEIGHT, canvas
+def update_state(func, max_iter: int):
+    global WIDTH, HEIGHT, canvas, zoom, xmax, xmin, ymax, ymin
 
+    if zoom != 1:
+        x_offset = (xmax-xmin) * ((anchor[0] - WIDTH/2)/WIDTH)
+        y_offset = (ymax-ymin) * ((anchor[1] - HEIGHT/2)/HEIGHT)
+
+        xmax += x_offset
+        xmin += x_offset
+        ymax += y_offset
+        ymin += y_offset
+
+        centerx = (xmax+xmin)/2
+        centery = (ymax+ymin)/2
+
+        ymax = centery + (ymax-ymin)/2/zoom
+        ymin = centery - (ymax-ymin)/2/zoom
+        xmax = centerx + (xmax-xmin)/2/zoom
+        xmin = centerx - (xmax-xmin)/2/zoom
+
+    zoom = 1
     x_edge = (xmax-xmin)*((WIDTH/HEIGHT)-1)/2
     x = np.linspace(xmin-x_edge,
                     xmax+x_edge, WIDTH)
@@ -51,11 +74,11 @@ def update_state(func, max_iter: int, xmin=-2, xmax=1, ymin=-1.3, ymax=1.3):
 
 
 def render_graphics():
-    global last_state
+    global last_state, zoom
     gamestates = update_state(mandelbrot, 500)
 
     for i, gamestate in enumerate(gamestates):
-        if (i+1) % 10 == 0:
+        if (i+1) % 50 == 0:
             gamestate *= 255.0/gamestate.max()
             gamestate = gamestate.astype(np.uint8)
             if i >= last_state['index'] or last_state['state'] is None:
@@ -71,28 +94,32 @@ def render_graphics():
             canvas.move("all", last_state['pan'][0], last_state['pan'][1])
             canvas.update()
             root.update()
+        if zoom != 1:
+            last_state['index'] = 0
+            break
 
-    root.after(16, render_graphics)
+    root.after(1, render_graphics)
 
 
 if __name__ == "__main__":
     root = tk.Tk()
     WIDTH, HEIGHT = root.winfo_screenwidth()//2, root.winfo_screenheight()//2
     root.geometry(f"{WIDTH}x{HEIGHT}+{WIDTH//2}+{HEIGHT//2}")
-
-    root.bind("<Escape>", lambda e: root.destroy())
     root.resizable(False, False)
-
     root.title("Mandelbrot")
 
     canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT, background='black')
-    canvas.bind("<ButtonPress-1>", start_pan)
-    canvas.bind("<B1-Motion>", move_pan)
-    canvas.bind("<MouseWheel>", zoom)
-
     canvas.pack()
 
-    last_state = {'state': None, 'index': 0, 'zoom': 1, 'pan': [0, 0]}
+    zoom = 1
+    anchor = WIDTH//2, HEIGHT//2
+    root.bind("<Escape>", lambda e: root.destroy())
+    root.bind("<Button-4>", zoomIn)
+    root.bind("<Button-5>", zoomOut)
+    root.bind("<Button-3>", reset)
+
+    last_state = {'state': None, 'index': 0, 'pan': [0, 0]}
+    xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
     render_graphics()
 
     root.mainloop()
