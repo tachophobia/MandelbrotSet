@@ -34,9 +34,16 @@ def zoomOut(event):
 def reset(event):
     global xmax, xmin, ymax, ymin, zoom, anchor
     zoom = 1
-    last_state['anchor'] = WIDTH//2, HEIGHT//2
+    anchor = WIDTH//2, HEIGHT//2
     xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
-    root.after(1, render_graphics())
+    render_graphics()
+
+
+def regen(event):
+    global xmax, xmin, ymax, ymin, zoom, anchor
+    zoom = 1
+    anchor = WIDTH//2, HEIGHT//2
+    render_graphics()
 
 
 def update_state(func, max_iter: int):
@@ -55,16 +62,17 @@ def update_state(func, max_iter: int):
         centerx = (xmax+xmin)/2
         centery = (ymax+ymin)/2
 
-        ymax = centery + (ymax-ymin)/2/zoom
-        ymin = centery - (ymax-ymin)/2/zoom
-        xmax = centerx + (xmax-xmin)/2/zoom
-        xmin = centerx - (xmax-xmin)/2/zoom
+        y_offset = (ymax-ymin)/2/zoom
+        x_offset = (xmax-xmin)/2/zoom
+        ymax = centery + y_offset
+        ymin = centery - y_offset
+        xmax = centerx + x_offset
+        xmin = centerx - x_offset
 
     zoom = 1
 
     x_edge = (xmax-xmin)*((WIDTH/HEIGHT)-1)/2
-    x = np.linspace(xmin-x_edge,
-                    xmax+x_edge, WIDTH)
+    x = np.linspace(xmin-x_edge, xmax+x_edge, WIDTH)
     y = np.linspace(ymin, ymax, HEIGHT)
 
     # create cartesian plane
@@ -79,8 +87,9 @@ def update_state(func, max_iter: int):
 
 
 def render_graphics():
-    global last_state, zoom, threshold
-    gamestates = update_state(mandelbrot, 1000)
+    global last_state, zoom, threshold, iterations
+
+    gamestates = update_state(mandelbrot, iterations)
 
     for i, gamestate in enumerate(gamestates):
         if (i+1) % 2 == 0:
@@ -90,16 +99,16 @@ def render_graphics():
             if threshold:
                 gamestate[gamestate > threshold] = 255
                 gamestate[gamestate <= threshold] = 0
+            gamestate = 255 - gamestate
 
-            if i >= last_state['index'] or last_state['state'] is None:
+            if (i >= last_state['index'] or (last_state['state'] is None)):
 
                 tk_image = ImageTk.PhotoImage(Image.fromarray(gamestate))
                 last_state['state'] = tk_image
                 last_state['arr'] = gamestate
                 last_state['index'] = i
 
-            canvas.create_image(
-                0, 0, image=last_state['state'], anchor=tk.NW)
+            canvas.create_image(0, 0, image=last_state['state'], anchor=tk.NW)
             canvas.update()
             root.update()
         if zoom != 1:
@@ -126,6 +135,33 @@ def render_graphics():
     root.after(16, render_graphics)
 
 
+def start_selection(event):
+    global select_rect
+    select_rect = [event.x, event.y, event.x, event.y]
+
+
+def update_selection(event):
+    global select_rect
+    select_rect[2] = event.x
+    select_rect[3] = event.y
+    canvas.delete("selection_rect")
+    canvas.create_rectangle(
+        *select_rect, outline='red', tags="selection_rect")
+
+
+def end_selection(event):
+    global select_rect, xmax, xmin, ymax, ymin
+    canvas.delete("selection_rect")
+
+    centery = (ymax-ymin)/2
+    ylen = ymax-ymin
+
+    print(xmin, xmax, ymin, ymax)
+
+    select_rect = None
+    render_graphics()
+
+
 if __name__ == "__main__":
     root = tk.Tk()
     WIDTH, HEIGHT = root.winfo_screenwidth()//2, root.winfo_screenheight()//2
@@ -138,15 +174,22 @@ if __name__ == "__main__":
 
     zoom = 1
     anchor = WIDTH//2, HEIGHT//2
+    select_rect = None
+
     root.bind("<Escape>", lambda e: root.destroy())
     root.bind("<Button-4>", zoomIn)
     root.bind("<Button-5>", zoomOut)
     root.bind("<Key-r>", reset)
+    root.bind("<Key-a>", regen)
+    canvas.bind("<ButtonPress-1>", start_selection)
+    canvas.bind("<B1-Motion>", update_selection)
+    canvas.bind("<ButtonRelease-1>", end_selection)
 
     last_state = {'state': None, 'arr': None,
                   'index': 0, 'anchor': anchor, 'reset': False}
     xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
     threshold = 254
+    iterations = 500
     render_graphics()
 
     root.mainloop()
