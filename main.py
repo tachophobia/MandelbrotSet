@@ -36,6 +36,7 @@ def reset(event):
     zoom = 1
     anchor = WIDTH//2, HEIGHT//2
     xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
+    last_state['index'] = 0
     render_graphics()
 
 
@@ -51,7 +52,6 @@ def update_state(func, max_iter: int):
     global WIDTH, HEIGHT, canvas, zoom, xmax, xmin, ymax, ymin
 
     if zoom != 1:
-
         anchor = last_state['anchor']
         x_offset = (xmax-xmin) * ((anchor[0] - WIDTH/2)/WIDTH)
         y_offset = (ymax-ymin) * ((anchor[1] - HEIGHT/2)/HEIGHT)
@@ -73,8 +73,12 @@ def update_state(func, max_iter: int):
 
     zoom = 1
 
-    x_edge = (xmax-xmin)*((WIDTH/HEIGHT)-1)/2
-    x = np.linspace(xmin-x_edge, xmax+x_edge, WIDTH)
+    if not np.isclose(abs(xmax-xmin)/abs(ymax-ymin), WIDTH/HEIGHT):
+        x_edge = (xmax-xmin)*((WIDTH/HEIGHT)-1)/2
+        xmin -= x_edge
+        xmax += x_edge
+
+    x = np.linspace(xmin, xmax, WIDTH)
     y = np.linspace(ymin, ymax, HEIGHT)
 
     # create cartesian plane
@@ -94,6 +98,8 @@ def render_graphics():
     gamestates = update_state(mandelbrot, iterations)
 
     for i, gamestate in enumerate(gamestates):
+        if last_state['reset']:
+            break
         if (i+1) % 2 == 0:
             gamestate *= 255.0/gamestate.max()
             gamestate = gamestate.astype(np.uint8)
@@ -158,7 +164,7 @@ def end_selection(_):
     diffW = abs(select_rect[2] - select_rect[0])/WIDTH
     diffH = abs(select_rect[3] - select_rect[1])/HEIGHT
 
-    if (diffW * diffH) > 0.02:
+    if (diffW * diffH) > 0.01:
         diffx = abs(xmax-xmin)
         diffy = abs(ymax-ymin)
 
@@ -166,10 +172,13 @@ def end_selection(_):
         deltay = diffH * diffy
 
         xmin += diffx*min(select_rect[0], select_rect[2])/WIDTH
-        xmax = xmin + deltax
+        # xmax = xmin + deltax
 
         ymin += diffy*min(select_rect[1], select_rect[3])/HEIGHT
         ymax = ymin + deltay
+
+        # correct for aspect ratio:
+        xmax = xmin + abs(ymax-ymin) * WIDTH/HEIGHT
 
         last_state['index'] = 10
 
