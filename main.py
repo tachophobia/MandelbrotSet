@@ -43,22 +43,24 @@ def regen(event):
     global xmax, xmin, ymax, ymin, zoom, anchor
     zoom = 1
     anchor = WIDTH//2, HEIGHT//2
+    last_state['index'] = 10
     render_graphics()
 
 
 def update_state(func, max_iter: int):
     global WIDTH, HEIGHT, canvas, zoom, xmax, xmin, ymax, ymin
 
-    anchor = last_state['anchor']
-    x_offset = (xmax-xmin) * ((anchor[0] - WIDTH/2)/WIDTH)
-    y_offset = (ymax-ymin) * ((anchor[1] - HEIGHT/2)/HEIGHT)
-
-    xmax += x_offset
-    xmin += x_offset
-    ymax += y_offset
-    ymin += y_offset
-
     if zoom != 1:
+
+        anchor = last_state['anchor']
+        x_offset = (xmax-xmin) * ((anchor[0] - WIDTH/2)/WIDTH)
+        y_offset = (ymax-ymin) * ((anchor[1] - HEIGHT/2)/HEIGHT)
+
+        xmax += x_offset
+        xmin += x_offset
+        ymax += y_offset
+        ymin += y_offset
+
         centerx = (xmax+xmin)/2
         centery = (ymax+ymin)/2
 
@@ -87,7 +89,7 @@ def update_state(func, max_iter: int):
 
 
 def render_graphics():
-    global last_state, zoom, threshold, iterations
+    global last_state, zoom, threshold, iterations, select_rect
 
     gamestates = update_state(mandelbrot, iterations)
 
@@ -149,14 +151,27 @@ def update_selection(event):
         *select_rect, outline='red', tags="selection_rect")
 
 
-def end_selection(event):
+def end_selection(_):
     global select_rect, xmax, xmin, ymax, ymin
     canvas.delete("selection_rect")
 
-    centery = (ymax-ymin)/2
-    ylen = ymax-ymin
+    diffW = abs(select_rect[2] - select_rect[0])/WIDTH
+    diffH = abs(select_rect[3] - select_rect[1])/HEIGHT
 
-    print(xmin, xmax, ymin, ymax)
+    if (diffW * diffH) > 0.02:
+        diffx = abs(xmax-xmin)
+        diffy = abs(ymax-ymin)
+
+        deltax = diffW * diffx
+        deltay = diffH * diffy
+
+        xmin += diffx*min(select_rect[0], select_rect[2])/WIDTH
+        xmax = xmin + deltax
+
+        ymin += diffy*min(select_rect[1], select_rect[3])/HEIGHT
+        ymax = ymin + deltay
+
+        last_state['index'] = 10
 
     select_rect = None
     render_graphics()
@@ -178,6 +193,7 @@ if __name__ == "__main__":
 
     root.bind("<Escape>", lambda e: root.destroy())
     root.bind("<Button-4>", zoomIn)
+    root.bind("<Key-z>", zoomIn)
     root.bind("<Button-5>", zoomOut)
     root.bind("<Key-r>", reset)
     root.bind("<Key-a>", regen)
