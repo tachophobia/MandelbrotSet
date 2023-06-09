@@ -49,7 +49,7 @@ def regen(event):
 
 
 def update_state(func, max_iter: int):
-    global WIDTH, HEIGHT, canvas, zoom, xmax, xmin, ymax, ymin
+    global WIDTH, HEIGHT, canvas, zoom, xmax, xmin, ymax, ymin, box
 
     if zoom != 1:
         anchor = last_state['anchor']
@@ -73,12 +73,11 @@ def update_state(func, max_iter: int):
 
     zoom = 1
 
-    if not np.isclose(abs(xmax-xmin)/abs(ymax-ymin), WIDTH/HEIGHT):
+    x_edge = 0
+    if not box:
         x_edge = (xmax-xmin)*((WIDTH/HEIGHT)-1)/2
-        xmin -= x_edge
-        xmax += x_edge
-
-    x = np.linspace(xmin, xmax, WIDTH)
+    
+    x = np.linspace(xmin-x_edge, xmax+x_edge, WIDTH)
     y = np.linspace(ymin, ymax, HEIGHT)
 
     # create cartesian plane
@@ -158,7 +157,7 @@ def update_selection(event):
 
 
 def end_selection(_):
-    global select_rect, xmax, xmin, ymax, ymin
+    global select_rect, xmax, xmin, ymax, ymin, box
     canvas.delete("selection_rect")
 
     diffW = abs(select_rect[2] - select_rect[0])/WIDTH
@@ -183,6 +182,7 @@ def end_selection(_):
         last_state['index'] = 10
 
     select_rect = None
+    box = True
     render_graphics()
 
 
@@ -215,6 +215,7 @@ if __name__ == "__main__":
     xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
     threshold = 254
     iterations = 500
+    box = False
     render_graphics()
 
     root.mainloop()
