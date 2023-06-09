@@ -32,7 +32,7 @@ def zoomOut(event):
 
 
 def reset(event):
-    global xmax, xmin, ymax, ymin, zoom, anchor
+    global xmax, xmin, ymax, ymin, zoom, anchor, box
     zoom = 1
     anchor = WIDTH//2, HEIGHT//2
     xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
