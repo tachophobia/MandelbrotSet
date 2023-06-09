@@ -41,7 +41,6 @@ def reset(event):
     render_graphics()
     
 
-
 def regen(event):
     global xmax, xmin, ymax, ymin, zoom, anchor
     zoom = 1
@@ -165,11 +164,11 @@ def end_selection(_):
     diffW = abs(select_rect[2] - select_rect[0])/WIDTH
     diffH = abs(select_rect[3] - select_rect[1])/HEIGHT
 
-    if (diffW * diffH) > 0.01:
+    if (diffW * diffH) > 0.001:
         diffx = abs(xmax-xmin)
         diffy = abs(ymax-ymin)
 
-        deltax = diffW * diffx
+        # deltax = diffW * diffx
         deltay = diffH * diffy
 
         xmin += diffx*min(select_rect[0], select_rect[2])/WIDTH
@@ -182,9 +181,9 @@ def end_selection(_):
         xmax = xmin + abs(ymax-ymin) * WIDTH/HEIGHT
 
         last_state['index'] = 10
+        box = True
 
     select_rect = None
-    box = True
     render_graphics()
 
 
@@ -206,6 +205,7 @@ if __name__ == "__main__":
     root.bind("<Button-4>", zoomIn)
     root.bind("<Key-z>", zoomIn)
     root.bind("<Button-5>", zoomOut)
+    root.bind("<Key-x>", zoomOut)
     root.bind("<Key-r>", reset)
     root.bind("<Key-a>", regen)
     canvas.bind("<ButtonPress-1>", start_selection)
