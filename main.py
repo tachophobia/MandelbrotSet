@@ -38,6 +38,7 @@ def reset(event):
     xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
     last_state['index'] = 0
     render_graphics()
+    box = False
 
 
 def regen(event):
