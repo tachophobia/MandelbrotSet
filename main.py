@@ -37,8 +37,9 @@ def reset(event):
     anchor = WIDTH//2, HEIGHT//2
     xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
     last_state['index'] = 0
-    render_graphics()
     box = False
+    render_graphics()
+    
 
 
 def regen(event):
