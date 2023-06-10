@@ -6,7 +6,7 @@ import cv2
 
 def mandelbrot(Z, max_iter):
     z = np.zeros_like(Z)
-    iters = np.zeros_like(Z)
+    iters = np.zeros_like(Z, dtype=int)
     dz = np.ones_like(Z)
     dbail = 1e6
 
@@ -92,27 +92,44 @@ def update_state(func, max_iter: int):
     return fractal
 
 
+def color_map1(iterations):
+    colors = np.zeros((iterations, 3))
+    for i in range(iterations):
+        colors[i] = [i % 8 * 32, i % 16 * 16, i % 32 * 8]
+    return colors
+
+def color_map2(iterations):
+    colors = np.zeros((iterations, 3), dtype=int)
+    for i in range(iterations):
+        colors[i] = [(i % 256), ((i * 2) % 256), ((i * 3) % 256)]
+
+    colors[255] = [0, 0, 0]
+    colors[254] = [0, 0, 0]
+
+    return colors
+
+
 def render_graphics():
-    global last_state, zoom, threshold, iterations, select_rect
+    global last_state, zoom, iterations, select_rect
 
     gamestates = update_state(mandelbrot, iterations)
+    color_map_arr = color_map2(iterations)
 
     for i, gamestate in enumerate(gamestates):
         if last_state['reset']:
             break
-        if (i+1) % 2 == 0:
-            gamestate *= 255.0/gamestate.max()
+        if (i + 1) % 2 == 0:
+            gamestate = gamestate.astype(np.float64)
+            gamestate *= 255./gamestate.max()
             gamestate = gamestate.astype(np.uint8)
-
-            if threshold:
-                gamestate[gamestate <= 254] = 0
-            gamestate = 255 - gamestate
+            gamestate_colored = color_map_arr[gamestate % iterations]
+            gamestate_colored = gamestate_colored.astype(np.uint8)
 
             if (i >= last_state['index'] or (last_state['state'] is None)):
-
-                tk_image = ImageTk.PhotoImage(Image.fromarray(gamestate))
+                tk_image = ImageTk.PhotoImage(
+                    Image.fromarray(gamestate_colored))
                 last_state['state'] = tk_image
-                last_state['arr'] = gamestate
+                last_state['arr'] = gamestate_colored
                 last_state['index'] = i
 
             canvas.create_image(0, 0, image=last_state['state'], anchor=tk.NW)
@@ -215,7 +232,7 @@ if __name__ == "__main__":
                   'index': 0, 'anchor': anchor, 'reset': False}
     xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
     threshold = False
-    iterations = 500
+    iterations = 100000
     box = False
     render_graphics()
 
