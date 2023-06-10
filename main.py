@@ -105,8 +105,7 @@ def render_graphics():
             gamestate = gamestate.astype(np.uint8)
 
             if threshold:
-                gamestate[gamestate > threshold] = 255
-                gamestate[gamestate <= threshold] = 0
+                gamestate[gamestate <= 254] = 0
             gamestate = 255 - gamestate
 
             if (i >= last_state['index'] or (last_state['state'] is None)):
@@ -215,7 +214,7 @@ if __name__ == "__main__":
     last_state = {'state': None, 'arr': None,
                   'index': 0, 'anchor': anchor, 'reset': False}
     xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
-    threshold = 254
+    threshold = False
     iterations = 500
     box = False
     render_graphics()
