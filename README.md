@@ -21,7 +21,7 @@ We iterate over each pixel, display what's been calculated so far, and then do a
 
 ![edges](https://github.com/tachophobia/MandelbrotSet/assets/112730336/871c2c6a-2b34-4994-96d3-36679b72f80a)
 
-Brute force, even when visualized, is still pretty slow. In our _test.ipynb_ file we demonstrate our process in trimming down the time it takes to iterate. Instead of simply using the given formula, we are able to acquire a lot more detail a lot more quickly by looking at the rate at which each pixel moves (the derivative). If a pixel is moving at too fast a rate, we can more quickly assume that it will diverge.
+However, brute force is pretty slow. In our _test.ipynb_ file we demonstrate our process in trimming down the time it takes to iterate. Instead of simply using the given formula, we are able to acquire a lot more detail a lot more quickly by looking at the rate at which each pixel moves (the derivative). If a pixel is moving at too fast a rate, we can more quickly assume that it will diverge.
 This method is called derivative bailout, or [derbail](https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set#Derivative_Bailout_or_%22derbail%22).
 
 
