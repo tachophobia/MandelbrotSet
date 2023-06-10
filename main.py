@@ -31,7 +31,7 @@ def zoomOut(event):
     anchor = canvas.canvasx(event.x), canvas.canvasy(event.y)
 
 
-def reset(event):
+def reset(_):
     global xmax, xmin, ymax, ymin, zoom, anchor, box
     zoom = 1
     anchor = WIDTH//2, HEIGHT//2
@@ -41,7 +41,7 @@ def reset(event):
     render_graphics()
     
 
-def regen(event):
+def regen(_):
     global xmax, xmin, ymax, ymin, zoom, anchor
     zoom = 1
     anchor = WIDTH//2, HEIGHT//2
@@ -97,6 +97,7 @@ def color_map1(iterations):
     for i in range(iterations):
         colors[i] = [i % 8 * 32, i % 16 * 16, i % 32 * 8]
     return colors
+
 
 def color_map2(iterations):
     colors = np.zeros((iterations, 3), dtype=int)
@@ -217,7 +218,8 @@ if __name__ == "__main__":
     anchor = WIDTH//2, HEIGHT//2
     select_rect = None
 
-    root.bind("<Escape>", lambda e: root.destroy())
+    root.protocol("WM_DELETE_WINDOW", lambda: root.destroy())
+    root.bind("<Escape>", lambda: root.destroy())
     root.bind("<Button-4>", zoomIn)
     root.bind("<Key-z>", zoomIn)
     root.bind("<Button-5>", zoomOut)
