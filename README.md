@@ -12,7 +12,7 @@ In our interactive display of the Mandelbrot set, we let you set customizable bo
 
 ![Mandelbrot Set](https://github.com/tachophobia/MandelbrotSet/assets/112730336/c03db354-3bed-4f10-b32d-8ed1c3d5bb37)
 
-Then, we colored the set cyclically based on the amount of iterations it took to diverge. The more confident we are that a certain pixel is convergent or divergent, the darker it is.
+We then colored the set cyclically based on the amount of iterations it took to diverge. The more confident we are that a certain pixel is convergent or divergent, the darker it is.
 
 ![Colored](https://github.com/tachophobia/MandelbrotSet/assets/112730336/724ecd44-56c6-4636-8ada-b768e793e4b0)
 
