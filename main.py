@@ -99,11 +99,11 @@ def seizure_colors(iterations):
     return colors
 
 
-def aesthetic_colors():
+def aesthetic_colors(r, g, b):
     iterations = 256
     colors = np.zeros((iterations, 3), dtype=int)
     for i in range(iterations):
-        colors[i] = [(i % 256), ((i * 2) % 256), ((i * 3) % 256)]
+        colors[i] = [((i * r) % 256), ((i * g) % 256), ((i * b) % 256)]
 
     colors[254:] = [0, 0, 0]
 
@@ -114,7 +114,7 @@ def render_graphics():
     global last_state, zoom, iterations, select_rect
 
     gamestates = update_state(mandelbrot, iterations)
-    color_map_arr = aesthetic_colors()
+    color_map_arr = aesthetic_colors(1, 1, 1)   # 1, 2, 3 for default
 
     for i, gamestate in enumerate(gamestates):
         if last_state['reset']:
