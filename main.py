@@ -39,7 +39,7 @@ def reset(_):
     last_state['index'] = 0
     box = False
     render_graphics()
-    
+
 
 def regen(_):
     global xmax, xmin, ymax, ymin, zoom, anchor
@@ -77,7 +77,7 @@ def update_state(func, max_iter: int):
     x_edge = 0
     if not box:
         x_edge = (xmax-xmin)*((WIDTH/HEIGHT)-1)/2
-    
+
     x = np.linspace(xmin-x_edge, xmax+x_edge, WIDTH)
     y = np.linspace(ymin, ymax, HEIGHT)
 
@@ -92,20 +92,20 @@ def update_state(func, max_iter: int):
     return fractal
 
 
-def color_map1(iterations):
+def seizure_colors(iterations):
     colors = np.zeros((iterations, 3))
     for i in range(iterations):
         colors[i] = [i % 8 * 32, i % 16 * 16, i % 32 * 8]
     return colors
 
 
-def color_map2(iterations):
+def aesthetic_colors():
+    iterations = 256
     colors = np.zeros((iterations, 3), dtype=int)
     for i in range(iterations):
         colors[i] = [(i % 256), ((i * 2) % 256), ((i * 3) % 256)]
 
-    colors[255] = [0, 0, 0]
-    colors[254] = [0, 0, 0]
+    colors[254:] = [0, 0, 0]
 
     return colors
 
@@ -114,7 +114,7 @@ def render_graphics():
     global last_state, zoom, iterations, select_rect
 
     gamestates = update_state(mandelbrot, iterations)
-    color_map_arr = color_map2(iterations)
+    color_map_arr = aesthetic_colors()
 
     for i, gamestate in enumerate(gamestates):
         if last_state['reset']:
@@ -234,7 +234,7 @@ if __name__ == "__main__":
                   'index': 0, 'anchor': anchor, 'reset': False}
     xmin, xmax, ymin, ymax = -2, 1, -1.3, 1.3
     threshold = False
-    iterations = 100000
+    iterations = 10000
     box = False
     render_graphics()
 
