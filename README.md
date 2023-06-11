@@ -25,4 +25,4 @@ However, brute force is pretty slow, so we needed to find a way to make it faste
 This method is called derivative bailout, or [derbail](https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set#Derivative_Bailout_or_%22derbail%22).
 
 
-For more resources on the Mandelbrot Set, chec kout 3Blue1Brown's [video](https://youtu.be/LqbZpur38nw) on it.
+For more resources on the Mandelbrot Set, check out 3Blue1Brown's [video](https://youtu.be/LqbZpur38nw) on it.
