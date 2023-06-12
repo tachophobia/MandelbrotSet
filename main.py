@@ -1,7 +1,13 @@
 import tkinter as tk
 import numpy as np
 from PIL import Image, ImageTk
-import cv2
+
+try:
+    import cv2
+    installed = True
+except ImportError as e:
+    installed = False
+    print("OpenCV package not installed. Install it to have access to all features.")
 
 
 def mandelbrot(Z, max_iter):
@@ -136,7 +142,7 @@ def render_graphics():
             canvas.create_image(0, 0, image=last_state['state'], anchor=tk.NW)
             canvas.update()
             root.update()
-        if zoom != 1:
+        if zoom != 1 and installed:
             last_state['index'] = 20
 
             rot_mat = cv2.getRotationMatrix2D((anchor[0], anchor[1]), 0, zoom)
