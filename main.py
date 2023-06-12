@@ -9,6 +9,7 @@ except ImportError as e:
     installed = False
     print("OpenCV package not installed. Install it to have access to all features.")
 
+continue_running = True
 
 def mandelbrot(Z, max_iter):
     z = np.zeros_like(Z)
@@ -123,8 +124,8 @@ def render_graphics():
     color_map_arr = aesthetic_colors(1, 1, 1)   # 1, 2, 3 for default
 
     for i, gamestate in enumerate(gamestates):
-        if last_state['reset']:
-            break
+        if not continue_running:
+            return
         if (i + 1) % 2 == 0:
             gamestate = gamestate.astype(np.float64)
             gamestate *= 255./gamestate.max()
@@ -162,7 +163,7 @@ def render_graphics():
         if last_state['reset']:
             last_state['reset'] = False
             break
-
+    
     root.after(16, render_graphics)
 
 
@@ -210,6 +211,11 @@ def end_selection(_):
     render_graphics()
 
 
+def exit_program():
+    global continue_running
+    continue_running = False
+    root.destroy()
+
 if __name__ == "__main__":
     root = tk.Tk()
     WIDTH, HEIGHT = root.winfo_screenwidth()//2, root.winfo_screenheight()//2
@@ -224,8 +230,8 @@ if __name__ == "__main__":
     anchor = WIDTH//2, HEIGHT//2
     select_rect = None
 
-    root.protocol("WM_DELETE_WINDOW", lambda: root.destroy())
-    root.bind("<Escape>", lambda: root.destroy())
+    root.protocol("WM_DELETE_WINDOW", exit_program)
+    root.bind("<Escape>", exit_program)
     root.bind("<Button-4>", zoomIn)
     root.bind("<Key-z>", zoomIn)
     root.bind("<Button-5>", zoomOut)
